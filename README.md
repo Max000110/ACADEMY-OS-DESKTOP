@@ -91,7 +91,23 @@ graph TD
 
 ---
 
-## 4. Installation & Activation Guide
+## 4. Screenshots
+
+| Dashboard | Student Management |
+|---|---|
+| ![Dashboard](screenshots/screenshot_dashboard.png) | ![Students](screenshots/screenshot_students.png) |
+
+| Fee Ledger | Lead Pipeline |
+|---|---|
+| ![Fee Management](screenshots/screenshot_fee.png) | ![Lead Management](screenshots/screenshot_leads.png) |
+
+| Data Import | Settings |
+|---|---|
+| ![Import Pipeline](screenshots/screenshot_import.png) | ![Settings](screenshots/screenshot_settings.png) |
+
+---
+
+## 5. Installation & Activation Guide
 
 ### Prerequisites
 *   **OS**: Windows 10+ (x64)
@@ -113,7 +129,7 @@ graph TD
 
 ---
 
-## 5. Operations Guide
+## 6. Operations Guide
 
 ### Student Management
 *   **Register Student**: Go to *Student Profiles*, click **Register New Student**, and enter details.
