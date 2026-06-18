@@ -34,12 +34,12 @@ Source: "dist\AcademyOS.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; Bundle Portable Tesseract OCR engine (Option A)
 Source: "tesseract\*"; DestDir: "{app}\tesseract"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; Default settings template - maps to {userprofile}\.academyos to align with python home-dir mapping
-Source: "settings.json"; DestDir: "{userprofile}\.academyos"; Flags: onlyifdoesntexist uninsneveruninstall
+; Default settings template - maps to {%USERPROFILE}\.academyos to align with python home-dir mapping
+Source: "settings.json"; DestDir: "{%USERPROFILE}\.academyos"; Flags: onlyifdoesntexist uninsneveruninstall
 
 [Icons]
 Name: "{group}\AcademyOS Desktop"; Filename: "{app}\AcademyOS.exe"; IconFilename: "{app}\AcademyOS.exe"
-Name: "{group}\{cm:UninstallProgram,AcademyOS Desktop}"; Filename: "{uninstval}"
+Name: "{group}\{cm:UninstallProgram,AcademyOS Desktop}"; Filename: "{uninstexe}"
 Name: "{autodesktop}\AcademyOS Desktop"; Filename: "{app}\AcademyOS.exe"; Tasks: desktopicon; IconFilename: "{app}\AcademyOS.exe"
 
 [Run]
@@ -49,5 +49,5 @@ Filename: "{app}\AcademyOS.exe"; Description: "{cm:LaunchProgram,AcademyOS Deskt
 ; Clean up logs and temporary folders.
 ; CRITICAL SAFEGUARD: Do not delete backups, settings, or database automatically during uninstall.
 ; Wiping customer data is high risk. We only remove log files and staging buffers.
-Type: files; Name: "{userprofile}\.academyos\academyos.log"
-Type: files; Name: "{userprofile}\.academyos\settings.json"
+Type: files; Name: "{%USERPROFILE}\.academyos\academyos.log"
+Type: files; Name: "{%USERPROFILE}\.academyos\settings.json"
