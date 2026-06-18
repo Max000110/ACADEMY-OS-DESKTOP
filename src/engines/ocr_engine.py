@@ -43,10 +43,23 @@ def run_offline_ocr(image_path: str) -> str:
         # In a real Windows environment, users can install Tesseract to Program Files
         # We check common installation paths on Windows as fallbacks
         if os.name == 'nt':
-            common_paths = [
+            # Check portable installation path relative to frozen executable first
+            import sys
+            app_dir = os.path.dirname(sys.executable)
+            portable_path = os.path.join(app_dir, "tesseract", "tesseract.exe")
+            portable_tessdata = os.path.join(app_dir, "tesseract", "tessdata")
+            
+            common_paths = []
+            if os.path.exists(portable_path):
+                common_paths.append(portable_path)
+                # Configure tessdata prefix if using portable bundler
+                if os.path.exists(portable_tessdata):
+                    os.environ["TESSDATA_PREFIX"] = portable_tessdata
+            
+            common_paths.extend([
                 r"C:\Program Files\Tesseract-OCR\tesseract.exe",
                 r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe"
-            ]
+            ])
             for path in common_paths:
                 if os.path.exists(path):
                     pytesseract.pytesseract.tesseract_cmd = path

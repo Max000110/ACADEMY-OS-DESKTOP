@@ -1,0 +1,103 @@
+name: Compile Windows Distribution
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller==6.5.0
+
+      - name: Run Verification Tests
+        env:
+          AOS_SIGNING_SALT: "test_prod_salt"
+        run: |
+          python -m unittest discover -s tests/ -v
+
+      - name: Compile PyInstaller Standalone Executable
+        env:
+          AOS_SIGNING_SALT: "test_prod_salt"
+        run: |
+          pyinstaller AcademyOS.spec
+
+      - name: Download Tesseract OCR Installer
+        shell: powershell
+        run: |
+          $url = "https://github.com/tesseract-ocr/tesseract/releases/download/5.5.0/tesseract-ocr-w64-setup-5.5.0.20241111.exe"
+          Invoke-WebRequest -Uri $url -OutFile "tesseract-setup.exe"
+
+      - name: Install Tesseract OCR Silently
+        shell: powershell
+        run: |
+          Start-Process -FilePath "tesseract-setup.exe" -ArgumentList "/S", "/D=C:\tesseract-ocr" -NoNewWindow -Wait
+
+      - name: Bundle Portable OCR Dependencies
+        shell: powershell
+        run: |
+          # Verify installation success
+          if (Test-Path "C:\tesseract-ocr\tesseract.exe") {
+              Write-Host "Tesseract installed successfully. Bundling files..."
+              Copy-Item -Path "C:\tesseract-ocr" -Destination "tesseract" -Recurse
+          } else {
+              Write-Error "Tesseract silent installation failed."
+              exit 1
+          }
+
+      - name: Compile Inno Setup Installer
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build_installer.iss
+
+      - name: Generate Checksums
+        shell: powershell
+        run: |
+          $exeHash = (Get-FileHash dist\AcademyOS.exe -Algorithm SHA256).Hash
+          $setupHash = (Get-FileHash dist\AcademyOS_Setup_v1.0.2.exe -Algorithm SHA256).Hash
+          Write-Host "AcademyOS.exe SHA-256: $exeHash"
+          Write-Host "AcademyOS_Setup_v1.0.2.exe SHA-256: $setupHash"
+          echo "SHA256 Checksums`nAcademyOS.exe: $exeHash`nAcademyOS_Setup_v1.0.2.exe: $setupHash" > dist\checksums.txt
+
+      - name: Publish Release Assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          files: |
+            dist/AcademyOS.exe
+            dist/AcademyOS_Setup_v1.0.2.exe
+            dist/checksums.txt
+          body: |
+            ### AcademyOS Desktop v1.0.2 Commercial Release (Windows)
+            
+            This release contains the production-ready standalone executable and the automated offline installer for Windows 10 & 11.
+            
+            **Release Assets**:
+            - `AcademyOS.exe` (Standalone Executable)
+            - `AcademyOS_Setup_v1.0.2.exe` (Setup Installer with bundled portable OCR)
+            
+            **Installation Notes**:
+            1. Download and run `AcademyOS_Setup_v1.0.2.exe`.
+            2. Follow the steps on the wizard (OCR will be provisioned automatically).
+            3. Paste your cryptographic license activation key.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
