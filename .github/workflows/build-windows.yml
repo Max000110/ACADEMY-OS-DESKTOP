@@ -41,28 +41,34 @@ jobs:
         run: |
           pyinstaller AcademyOS.spec
 
-      - name: Download Tesseract OCR Installer
-        shell: powershell
+      - name: Install Tesseract OCR via Chocolatey
         run: |
-          $url = "https://github.com/tesseract-ocr/tesseract/releases/download/5.5.0/tesseract-ocr-w64-setup-5.5.0.20241111.exe"
-          Invoke-WebRequest -Uri $url -OutFile "tesseract-setup.exe"
-
-      - name: Install Tesseract OCR Silently
-        shell: powershell
-        run: |
-          Start-Process -FilePath "tesseract-setup.exe" -ArgumentList "/S", "/D=C:\tesseract-ocr" -NoNewWindow -Wait
+          choco install tesseract -y
 
       - name: Bundle Portable OCR Dependencies
         shell: powershell
         run: |
-          # Verify installation success
-          if (Test-Path "C:\tesseract-ocr\tesseract.exe") {
-              Write-Host "Tesseract installed successfully. Bundling files..."
-              Copy-Item -Path "C:\tesseract-ocr" -Destination "tesseract" -Recurse
-          } else {
-              Write-Error "Tesseract silent installation failed."
+          # Create destination directory
+          New-Item -ItemType Directory -Force -Path "tesseract"
+          # Verify installation success and copy files
+          $commonPaths = @(
+              "C:\Program Files\Tesseract-OCR",
+              "C:\Program Files (x86)\Tesseract-OCR"
+          )
+          $found = $false
+          foreach ($path in $commonPaths) {
+              if (Test-Path "$path\tesseract.exe") {
+                  Write-Host "Tesseract found at $path. Bundling files..."
+                  Copy-Item -Path "$path\*" -Destination "tesseract" -Recurse -Force
+                  $found = $true
+                  break
+              }
+          }
+          if (-not $found) {
+              Write-Error "Tesseract installation not found."
               exit 1
           }
+          Get-ChildItem -Path "tesseract"
 
       - name: Compile Inno Setup Installer
         shell: pwsh
