@@ -14,9 +14,17 @@ venv/
 ENV/
 env/
 
-# Databases and Local Configurations
+# Databases, Backups and Local Configurations
 *.db
+*.sqlite*
 *.log
+*.zip
+*.env
+*.env.*
+backups/
+reports/
+license.json
+settings.json
 .academyos/
 stress_temp/
 
