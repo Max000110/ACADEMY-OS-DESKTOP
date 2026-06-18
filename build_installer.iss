@@ -39,7 +39,7 @@ Source: "settings.json"; DestDir: "{%USERPROFILE}\.academyos"; Flags: onlyifdoes
 
 [Icons]
 Name: "{group}\AcademyOS Desktop"; Filename: "{app}\AcademyOS.exe"; IconFilename: "{app}\AcademyOS.exe"
-Name: "{group}\{cm:UninstallProgram,AcademyOS Desktop}"; Filename: "{uninstexe}"
+Name: "{group}\{cm:UninstallProgram,AcademyOS Desktop}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\AcademyOS Desktop"; Filename: "{app}\AcademyOS.exe"; Tasks: desktopicon; IconFilename: "{app}\AcademyOS.exe"
 
 [Run]
