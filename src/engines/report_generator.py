@@ -28,7 +28,7 @@ def generate_receipt_pdf(payment_id: int, output_path: str) -> tuple:
             """
             SELECT 
                 p.id as payment_id, p.amount_paid, p.payment_date, p.payment_method, p.receipt_number, p.remarks,
-                s.first_name, s.last_name, s.phone, s.email,
+                s.id as student_id, s.first_name, s.last_name, s.phone, s.email,
                 c.name as course_name, e.net_fee
             FROM fee_payments p
             JOIN enrollments e ON p.enrollment_id = e.id
@@ -159,7 +159,7 @@ def generate_receipt_pdf(payment_id: int, output_path: str) -> tuple:
         details_data = [
             [
                 Paragraph("<b>Student ID:</b>", normal_bold),
-                Paragraph(str(pay["payment_id"]), normal_regular),
+                Paragraph(str(pay["student_id"]), normal_regular),
                 Paragraph("<b>Student Name:</b>", normal_bold),
                 Paragraph(f"{pay['first_name']} {pay['last_name']}", normal_regular)
             ],
