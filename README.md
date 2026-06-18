@@ -151,7 +151,7 @@ graph TD
 
 ---
 
-## 6. Security Notes
+## 7. Security Notes
 
 *   **100% Parameterized Queries**: Every database communication uses positional bindings (`?`). Dynamic queries are resilient to SQL Injection.
 *   **Zip Slip Protection**: Restoring a backup validates member paths, preventing directory traversal.
