@@ -35,7 +35,7 @@ Source: "dist\AcademyOS.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "tesseract\*"; DestDir: "{app}\tesseract"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Default settings template - maps to {%USERPROFILE}\.academyos to align with python home-dir mapping
-Source: "settings.json"; DestDir: "{%USERPROFILE}\.academyos"; Flags: onlyifdoesntexist uninsneveruninstall
+; Source: "settings.json"; DestDir: "{%USERPROFILE}\.academyos"; Flags: onlyifdoesntexist uninsneveruninstall
 
 [Icons]
 Name: "{group}\AcademyOS Desktop"; Filename: "{app}\AcademyOS.exe"; IconFilename: "{app}\AcademyOS.exe"
