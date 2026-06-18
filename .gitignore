@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+local_build/
+*.spec
+
+# Virtual Environments
+venv/
+ENV/
+env/
+
+# Databases and Local Configurations
+*.db
+*.log
+.academyos/
+stress_temp/
+
+# PyCharm / VS Code settings
+.idea/
+.vscode/
