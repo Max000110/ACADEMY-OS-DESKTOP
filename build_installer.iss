@@ -1,10 +1,10 @@
 ; AcademyOS Desktop Client Inno Setup Script
-; This script compiles the PyInstaller-bundled executable into a single Windows installer setup.
+; Upgraded for Commercial Windows Distribution (v1.0.1)
 
 [Setup]
 AppId={{C7DE8E9D-4952-47BA-9C78-FA6808796ACD}
 AppName=AcademyOS Desktop
-AppVersion=1.0.0
+AppVersion=1.0.1
 AppPublisher=AcademyOS
 AppPublisherURL=https://www.academyos.com
 AppSupportURL=https://www.academyos.com/support
@@ -13,12 +13,13 @@ DefaultDirName={autopf}\AcademyOS
 DefaultGroupName=AcademyOS
 DisableProgramGroupPage=yes
 LicenseFile=LICENSE.txt
-; Output options
 OutputDir=dist
-OutputBaseFilename=AcademyOS_Setup_v1.0.0
+OutputBaseFilename=AcademyOS_Setup_v1.0.1
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+; Prevent installation on old unsupported Windows versions (Min OS: Windows 10)
+MinVersion=10.0
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -27,20 +28,26 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
+; Standalone Windows Executable
 Source: "dist\AcademyOS.exe"; DestDir: "{app}"; Flags: ignoreversion
-; Default configuration structures (if packaging folders)
-Source: "settings.json"; DestDir: "{userappdata}\AcademyOS"; Flags: onlyifdoesntexist
+
+; Bundle Portable Tesseract OCR engine (Option A)
+Source: "tesseract\*"; DestDir: "{app}\tesseract"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+; Default settings template - maps to {userprofile}\.academyos to align with python home-dir mapping
+Source: "settings.json"; DestDir: "{userprofile}\.academyos"; Flags: onlyifdoesntexist uninsneveruninstall
 
 [Icons]
-Name: "{group}\AcademyOS"; Filename: "{app}\AcademyOS.exe"
-Name: "{group}\{cm:UninstallProgram,AcademyOS}"; Filename: "{uninstval}"
-Name: "{autodesktop}\AcademyOS"; Filename: "{app}\AcademyOS.exe"; Tasks: desktopicon
+Name: "{group}\AcademyOS Desktop"; Filename: "{app}\AcademyOS.exe"; IconFilename: "{app}\AcademyOS.exe"
+Name: "{group}\{cm:UninstallProgram,AcademyOS Desktop}"; Filename: "{uninstval}"
+Name: "{autodesktop}\AcademyOS Desktop"; Filename: "{app}\AcademyOS.exe"; Tasks: desktopicon; IconFilename: "{app}\AcademyOS.exe"
 
 [Run]
-Filename: "{app}\AcademyOS.exe"; Description: "{cm:LaunchProgram,AcademyOS}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\AcademyOS.exe"; Description: "{cm:LaunchProgram,AcademyOS Desktop}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{userappdata}\AcademyOS\backups"
-Type: files; Name: "{userappdata}\AcademyOS\settings.json"
-Type: files; Name: "{userappdata}\AcademyOS\academyos.db"
-Type: files; Name: "{userappdata}\AcademyOS\academyos.log"
+; Clean up logs and temporary folders.
+; CRITICAL SAFEGUARD: Do not delete backups, settings, or database automatically during uninstall.
+; Wiping customer data is high risk. We only remove log files and staging buffers.
+Type: files; Name: "{userprofile}\.academyos\academyos.log"
+Type: files; Name: "{userprofile}\.academyos\settings.json"
