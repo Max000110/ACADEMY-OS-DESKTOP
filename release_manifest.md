@@ -2,7 +2,7 @@
 
 ## Release Overview
 *   **Application Name**: AcademyOS Desktop Client
-*   **Version**: v1.0.4
+*   **Version**: v1.0.5
 *   **Release Date**: 2026-06-19
 *   **Target Operating System**: Windows 10+ (x86/x64)
 *   **Build Environment**: Frozen via PyInstaller, packaged via Inno Setup Compiler 6
@@ -11,8 +11,8 @@
 
 | File Name | Asset Type | SHA-256 Cryptographic Checksum |
 | :--- | :--- | :--- |
-| **AcademyOS.exe** | Windows Standalone Executable (Native build target) | `2E133D7EA1DB387663D399C453EFC880A28DC0F266397B326DBC235BC67A8832` |
-| **AcademyOS_Setup_v1.0.4.exe** | Windows Inno Setup Installer with bundled portable OCR | `31344B16C44D1B8590FF64A2BD2E593EE93E4D0879802729BA21237A1678708F` |
+| **AcademyOS.exe** | Windows Standalone Executable (Native build target) | `9E3AB48D3277FAD5C3A60A83BF03DCA94F217A96B1B88BF56AE6977C8E79D6FE` |
+| **AcademyOS_Setup_v1.0.5.exe** | Windows Inno Setup Installer with bundled portable OCR | `6EBC5AC2B465D2DD23EFD632D240D9D3E83AD62AA32A0AC4680284A627B71F6D` |
 
 > [!NOTE]
 > Checksums are compiled on the native Windows build runner using `Get-FileHash` during the continuous integration build workflow and pushed directly to the matching release assets.
