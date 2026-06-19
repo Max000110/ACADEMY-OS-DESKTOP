@@ -119,13 +119,20 @@ def extract_entities_from_text(raw_text: str) -> dict:
             
     # 4. Extract Receipt Details
     for line in lines:
-        lower_line = line.lower()
-        if "receipt:" in lower_line or "receipt no:" in lower_line or "receipt number:" in lower_line or "rec no:" in lower_line:
-            clean_line = re.sub(r'^(receipt|receipt no|receipt number|rec no)\s*:\s*', '', line, flags=re.IGNORECASE)
-            extracted["receipt"] = clean_line.strip()
+        match = re.search(r'\b(receipt number|receipt no|receipt|rec no|rec number|rec)\b\s*[:\.-]\s*([A-Za-z0-9_-]+)', line, re.IGNORECASE)
+        if match:
+            extracted["receipt"] = match.group(2).strip()
             break
             
-    # 5. Extract amount paid/fees
+    # 5. Extract Course
+    for line in lines:
+        lower_line = line.lower()
+        if "course" in lower_line or "subject" in lower_line or "program" in lower_line:
+            clean_line = re.sub(r'^(course|subject|program)\s*[:\.-]?\s*', '', line, flags=re.IGNORECASE)
+            extracted["course"] = clean_line.strip()
+            break
+            
+    # 6. Extract amount paid/fees
     amount_match = re.search(r'(?:fee|amount|paid|total|collection)\s*[:$]?\s*(\d+(?:\.\d{2})?)', raw_text, re.IGNORECASE)
     if amount_match:
         extracted["amount"] = amount_match.group(1)

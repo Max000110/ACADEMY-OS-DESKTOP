@@ -78,6 +78,10 @@ class SettingsTab(QWidget):
         self.btn_refresh.clicked.connect(self.refresh_online_license)
         license_layout.addRow(self.btn_refresh)
         
+        self.btn_deactivate = QPushButton("Deactivate Current Device License")
+        self.btn_deactivate.clicked.connect(self.deactivate_online_license)
+        license_layout.addRow(self.btn_deactivate)
+        
         layout.addWidget(license_group)
         
         # --- SYSTEM USER MANUAL HELP PANEL ---
@@ -221,3 +225,89 @@ class SettingsTab(QWidget):
         else:
             self.lbl_health.setText("System Health: WORKING NORMAL")
             self.lbl_health.setStyleSheet("background-color: #D1FAE5; color: #059669; padding: 8px; border-radius: 4px; font-weight: bold;")
+
+    def deactivate_online_license(self):
+        import os
+        import json
+        import urllib.request
+        import urllib.error
+        from src.engines.license import get_device_fingerprint, LICENSE_PATH
+        
+        reply = QMessageBox.question(
+            self, "Deactivate License", 
+            "Are you sure you want to deactivate the license on this device?\nThis will release the device slot on the server and remove your local activation.",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+        if reply == QMessageBox.No:
+            return
+            
+        settings = load_settings()
+        lic_key = settings.get("license_key")
+        if not lic_key:
+            if os.path.exists(LICENSE_PATH):
+                try:
+                    with open(LICENSE_PATH, 'r') as f:
+                        data = json.load(f)
+                    lic_key = data.get("license_key")
+                except Exception:
+                    pass
+                    
+        if not lic_key:
+            QMessageBox.warning(self, "No Active License", "No active license key found to deactivate.")
+            return
+            
+        fingerprint = get_device_fingerprint()
+        server_url = os.environ.get("AOS_LICENSING_SERVER_URL", "http://127.0.0.1:8000")
+        url = f"{server_url}/api/deactivate"
+        
+        payload = {
+            "license_key": lic_key,
+            "device_fingerprint": fingerprint
+        }
+        
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode('utf-8'),
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+        )
+        
+        try:
+            with urllib.request.urlopen(req, timeout=10) as response:
+                res_data = json.loads(response.read().decode('utf-8'))
+                
+            if res_data.get("status") == "deactivated":
+                if os.path.exists(LICENSE_PATH):
+                    os.remove(LICENSE_PATH)
+                
+                settings["license_key"] = ""
+                save_settings(settings)
+                
+                QMessageBox.information(self, "Success", "License deactivated successfully! Local activation removed.")
+                self.refresh_health_status()
+                self.window().refresh_all_tabs()
+            else:
+                QMessageBox.critical(self, "Failed", "Failed to deactivate license on the server.")
+        except urllib.error.HTTPError as e:
+            try:
+                err_data = json.loads(e.read().decode('utf-8'))
+                detail = err_data.get("detail", str(e))
+            except Exception:
+                detail = str(e)
+            QMessageBox.critical(self, "Deactivation Failed", f"Licensing server reports: {detail}")
+        except urllib.error.URLError as e:
+            reply_force = QMessageBox.question(
+                self, "Connection Error",
+                f"Cannot connect to licensing server: {e.reason}\nWould you like to force local deactivation by removing the license file?",
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            )
+            if reply_force == QMessageBox.Yes:
+                if os.path.exists(LICENSE_PATH):
+                    os.remove(LICENSE_PATH)
+                settings["license_key"] = ""
+                save_settings(settings)
+                QMessageBox.information(self, "Local Deactivation", "Local license file removed.")
+                self.refresh_health_status()
+                self.window().refresh_all_tabs()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An unexpected error occurred: {e}")
