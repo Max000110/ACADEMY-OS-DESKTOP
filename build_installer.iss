@@ -1,10 +1,14 @@
 ; AcademyOS Desktop Client Inno Setup Script
 ; Upgraded for Commercial Windows Distribution (v1.0.1)
 
+#ifndef AppVersion
+#define AppVersion "1.0.3"
+#endif
+
 [Setup]
 AppId={{C7DE8E9D-4952-47BA-9C78-FA6808796ACD}
 AppName=AcademyOS Desktop
-AppVersion=1.0.3
+AppVersion={#AppVersion}
 AppPublisher=AcademyOS
 AppPublisherURL=https://www.academyos.com
 AppSupportURL=https://www.academyos.com/support
@@ -14,7 +18,7 @@ DefaultGroupName=AcademyOS
 DisableProgramGroupPage=yes
 LicenseFile=LICENSE.txt
 OutputDir=dist
-OutputBaseFilename=AcademyOS_Setup_v1.0.3
+OutputBaseFilename=AcademyOS_Setup_v{#AppVersion}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

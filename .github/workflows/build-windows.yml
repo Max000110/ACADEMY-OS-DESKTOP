@@ -114,16 +114,19 @@ jobs:
       - name: Compile Inno Setup Installer
         shell: pwsh
         run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build_installer.iss
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          if ($version -eq "master" -or $version -eq "") { $version = "1.0.3" }
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=$version build_installer.iss
 
       - name: Generate Checksums
         shell: powershell
         run: |
           $exeHash = (Get-FileHash dist\AcademyOS.exe -Algorithm SHA256).Hash
-          $setupHash = (Get-FileHash dist\AcademyOS_Setup_v1.0.3.exe -Algorithm SHA256).Hash
+          $setupFile = Get-Item dist\AcademyOS_Setup_*.exe
+          $setupHash = (Get-FileHash $setupFile -Algorithm SHA256).Hash
           Write-Host "AcademyOS.exe SHA-256: $exeHash"
-          Write-Host "AcademyOS_Setup_v1.0.3.exe SHA-256: $setupHash"
-          echo "SHA256 Checksums`nAcademyOS.exe: $exeHash`nAcademyOS_Setup_v1.0.3.exe: $setupHash" > dist\checksums.txt
+          Write-Host "$($setupFile.Name) SHA-256: $setupHash"
+          echo "SHA256 Checksums`nAcademyOS.exe: $exeHash`n$($setupFile.Name): $setupHash" > dist\checksums.txt
 
       - name: Publish Release Assets
         uses: softprops/action-gh-release@v2
@@ -131,19 +134,19 @@ jobs:
         with:
           files: |
             dist/AcademyOS.exe
-            dist/AcademyOS_Setup_v1.0.3.exe
+            dist/AcademyOS_Setup_*.exe
             dist/checksums.txt
           body: |
-            ### AcademyOS Desktop v1.0.3 Commercial Release (Windows)
+            ### AcademyOS Desktop ${{ github.ref_name }} Commercial Release (Windows)
             
             This release contains the production-ready standalone executable and the automated offline installer for Windows 10 & 11.
             
             **Release Assets**:
             - `AcademyOS.exe` (Standalone Executable)
-            - `AcademyOS_Setup_v1.0.3.exe` (Setup Installer with bundled portable OCR)
+            - `AcademyOS_Setup_*.exe` (Setup Installer with bundled portable OCR)
             
             **Installation Notes**:
-            1. Download and run `AcademyOS_Setup_v1.0.3.exe`.
+            1. Download and run the setup installer (`AcademyOS_Setup_*.exe`).
             2. Follow the steps on the wizard (OCR will be provisioned automatically).
             3. Paste your cryptographic license activation key.
         env:

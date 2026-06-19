@@ -26,7 +26,7 @@ import src.engines.report_generator as pdf_engine
 import src.engines.staging as staging_engine
 import src.engines.ocr_engine as ocr_engine
 
-ARTIFACT_DIR = "/home/ubuntu/.gemini/antigravity-cli/brain/6ced968f-933f-4dcc-9741-545a08eb4ca8"
+ARTIFACT_DIR = os.environ.get("AOS_ARTIFACT_DIR", "/home/ubuntu/.gemini/antigravity-cli/brain/bad9de1d-c8e4-4253-8c7f-0a63c4939998")
 
 def main():
     print("=== ACADEMYOS VERIFICATION AUDIT INITIALIZING ===")

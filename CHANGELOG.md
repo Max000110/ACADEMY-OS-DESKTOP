@@ -23,3 +23,24 @@ All notable changes to **AcademyOS Desktop** will be documented in this file.
 - **Spreadsheet Formula Injection Escape**: Prepend cell entries starting with `=`, `+`, `-`, or `@` with a single quote (`'`).
 - **Clock Rollback Safeguard**: Checks system clock dates against configuration-logged execution datetimes to block clock-shifting trial bypasses.
 - **Console Log Protection**: Fixed console logging levels to `logging.INFO` to prevent private key/debug leak logs.
+
+## [1.0.1] - 2026-06-18
+
+### Fixed
+- **UI Window console**: Removed debug console window popping up on startup on Windows system (`console=False` in build spec).
+- **PDF Generation**: Fixed Student ID mapping bug in receipt invoice PDF rendering module.
+- **XLSX Import**: Fixed runtime `NameError` on `datetime` module during Excel staging imports.
+
+## [1.0.2] - 2026-06-18
+
+### Added
+- **Portable OCR Installer Configuration**: Configured `build_installer.iss` to target dynamic user profiles (`{%USERPROFILE}\.academyos`) and bundle portable Tesseract OCR binary directory.
+- **Safeguard Database Preservation**: Commented out settings template and database files in the uninstall file targets to prevent accidental wiping of customer records.
+
+## [1.0.3] - 2026-06-19
+
+### Added
+- **Licensing Server Architecture**: FastAPI licensing API server and management dashboard (v1.1.0) with support for online/offline activation, heartbeats, and device concurrency bindings.
+- **Security Hardening**: Implemented brute force IP protection, JWT slide session rotation, XSS/CSP middleware filters, and anti-CSRF protections on settings and dashboard routers.
+- **GHA Build Automation**: Continuous integration pipeline in GitHub Actions compiling Windows executables and setup installers, bundling OCR assets, generating checksums, and pushing releases.
+- **Deprecated WMIC compatibility**: Patched `get_device_fingerprint()` to execute PowerShell fallbacks on modern Windows kernels (like Windows Server 2025 or Windows 11) where `wmic` has been removed.
