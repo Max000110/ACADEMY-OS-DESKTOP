@@ -26,6 +26,7 @@ reports/
 license.json
 settings.json
 .academyos/
+src/utils/salt.py
 stress_temp/
 
 # PyCharm / VS Code settings

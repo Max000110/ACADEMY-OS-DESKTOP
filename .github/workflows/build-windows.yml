@@ -41,6 +41,32 @@ jobs:
         run: |
           pyinstaller AcademyOS.spec
 
+      - name: Verify Executable Boot (Dry Run)
+        env:
+          AOS_SIGNING_SALT: "test_prod_salt"
+          QT_QPA_PLATFORM: "offscreen"
+        shell: powershell
+        run: |
+          Write-Host "Starting dry run of AcademyOS.exe to verify successful startup..."
+          $proc = Start-Process -FilePath "dist\AcademyOS.exe" -NoNewWindow -RedirectStandardError "err.txt" -RedirectStandardOutput "out.txt" -PassThru
+          Start-Sleep -Seconds 8
+          if ($proc.HasExited) {
+              Write-Error "AcademyOS.exe crashed on startup with exit code: $($proc.ExitCode)"
+              if (Test-Path "err.txt") {
+                  Write-Host "=== Standard Error Output ==="
+                  Get-Content "err.txt"
+              }
+              if (Test-Path "out.txt") {
+                  Write-Host "=== Standard Output ==="
+                  Get-Content "out.txt"
+              }
+              exit 1
+          } else {
+              Write-Host "AcademyOS.exe launched successfully and is running."
+              Stop-Process -Id $proc.Id -Force
+              Write-Host "Process terminated successfully."
+          }
+
       - name: Install Tesseract OCR via Chocolatey
         run: |
           choco install tesseract -y
@@ -79,10 +105,10 @@ jobs:
         shell: powershell
         run: |
           $exeHash = (Get-FileHash dist\AcademyOS.exe -Algorithm SHA256).Hash
-          $setupHash = (Get-FileHash dist\AcademyOS_Setup_v1.0.2.exe -Algorithm SHA256).Hash
+          $setupHash = (Get-FileHash dist\AcademyOS_Setup_v1.0.3.exe -Algorithm SHA256).Hash
           Write-Host "AcademyOS.exe SHA-256: $exeHash"
-          Write-Host "AcademyOS_Setup_v1.0.2.exe SHA-256: $setupHash"
-          echo "SHA256 Checksums`nAcademyOS.exe: $exeHash`nAcademyOS_Setup_v1.0.2.exe: $setupHash" > dist\checksums.txt
+          Write-Host "AcademyOS_Setup_v1.0.3.exe SHA-256: $setupHash"
+          echo "SHA256 Checksums`nAcademyOS.exe: $exeHash`nAcademyOS_Setup_v1.0.3.exe: $setupHash" > dist\checksums.txt
 
       - name: Publish Release Assets
         uses: softprops/action-gh-release@v2
@@ -90,19 +116,19 @@ jobs:
         with:
           files: |
             dist/AcademyOS.exe
-            dist/AcademyOS_Setup_v1.0.2.exe
+            dist/AcademyOS_Setup_v1.0.3.exe
             dist/checksums.txt
           body: |
-            ### AcademyOS Desktop v1.0.2 Commercial Release (Windows)
+            ### AcademyOS Desktop v1.0.3 Commercial Release (Windows)
             
             This release contains the production-ready standalone executable and the automated offline installer for Windows 10 & 11.
             
             **Release Assets**:
             - `AcademyOS.exe` (Standalone Executable)
-            - `AcademyOS_Setup_v1.0.2.exe` (Setup Installer with bundled portable OCR)
+            - `AcademyOS_Setup_v1.0.3.exe` (Setup Installer with bundled portable OCR)
             
             **Installation Notes**:
-            1. Download and run `AcademyOS_Setup_v1.0.2.exe`.
+            1. Download and run `AcademyOS_Setup_v1.0.3.exe`.
             2. Follow the steps on the wizard (OCR will be provisioned automatically).
             3. Paste your cryptographic license activation key.
         env:

@@ -21,13 +21,29 @@ def get_device_fingerprint() -> str:
     # 1. Platform specific system UUIDs
     try:
         if sys.platform.startswith("win"):
-            # Motherboard UUID via WMIC (without shell=True for command injection safety)
-            raw_uuid = subprocess.check_output(["wmic", "bios", "get", "uuid"], shell=False).decode('utf-8')
-            identifiers.append(raw_uuid.strip().split("\n")[-1].strip())
+            # Motherboard UUID via WMIC (without shell=True for command injection safety) with PowerShell fallback
+            try:
+                raw_uuid = subprocess.check_output(["wmic", "bios", "get", "uuid"], shell=False).decode('utf-8')
+                identifiers.append(raw_uuid.strip().split("\n")[-1].strip())
+            except Exception as e:
+                logging.warning(f"Failed to fetch bios uuid via wmic, trying powershell: {e}")
+                try:
+                    raw_uuid = subprocess.check_output(["powershell", "-NoProfile", "-Command", "(Get-CimInstance -ClassName Win32_ComputerSystemProduct).UUID"], shell=False).decode('utf-8')
+                    identifiers.append(raw_uuid.strip())
+                except Exception as pe:
+                    logging.warning(f"Failed to fetch bios uuid via powershell: {pe}")
             
-            # Motherboard Serial
-            raw_board = subprocess.check_output(["wmic", "baseboard", "get", "serialnumber"], shell=False).decode('utf-8')
-            identifiers.append(raw_board.strip().split("\n")[-1].strip())
+            # Motherboard Serial with PowerShell fallback
+            try:
+                raw_board = subprocess.check_output(["wmic", "baseboard", "get", "serialnumber"], shell=False).decode('utf-8')
+                identifiers.append(raw_board.strip().split("\n")[-1].strip())
+            except Exception as e:
+                logging.warning(f"Failed to fetch baseboard serial via wmic, trying powershell: {e}")
+                try:
+                    raw_board = subprocess.check_output(["powershell", "-NoProfile", "-Command", "(Get-CimInstance -ClassName Win32_BaseBoard).SerialNumber"], shell=False).decode('utf-8')
+                    identifiers.append(raw_board.strip())
+                except Exception as pe:
+                    logging.warning(f"Failed to fetch baseboard serial via powershell: {pe}")
         elif sys.platform.startswith("linux"):
             # Machine ID or Motherboard serial
             for path in ["/etc/machine-id", "/var/lib/dbus/machine-id", "/sys/class/dmi/id/product_uuid", "/sys/class/dmi/id/board_serial"]:
@@ -202,10 +218,20 @@ def check_hardware_compatibility() -> tuple:
     try:
         # psutil would be nice, but fallback to free/system calls to avoid extra dependency
         if sys.platform.startswith("win"):
-            # WMIC computer system get totalphysicalmemory (without shell=True)
-            raw_mem = subprocess.check_output(["wmic", "computersystem", "get", "totalphysicalmemory"], shell=False).decode('utf-8')
-            mem_bytes = int(raw_mem.strip().split("\n")[-1].strip())
-            total_ram_gb = mem_bytes / (1024 ** 3)
+            # Try WMIC first, fallback to PowerShell
+            try:
+                raw_mem = subprocess.check_output(["wmic", "computersystem", "get", "totalphysicalmemory"], shell=False).decode('utf-8')
+                mem_bytes = int(raw_mem.strip().split("\n")[-1].strip())
+                total_ram_gb = mem_bytes / (1024 ** 3)
+            except Exception as e:
+                logging.warning(f"Failed to fetch totalphysicalmemory via wmic, trying powershell: {e}")
+                try:
+                    raw_mem = subprocess.check_output(["powershell", "-NoProfile", "-Command", "(Get-CimInstance -ClassName Win32_ComputerSystem).TotalPhysicalMemory"], shell=False).decode('utf-8')
+                    mem_bytes = int(raw_mem.strip())
+                    total_ram_gb = mem_bytes / (1024 ** 3)
+                except Exception as pe:
+                    logging.warning(f"Failed to fetch totalphysicalmemory via powershell: {pe}")
+                    total_ram_gb = 4.0
         elif sys.platform.startswith("linux"):
             with open("/proc/meminfo", "r") as f:
                 for line in f:

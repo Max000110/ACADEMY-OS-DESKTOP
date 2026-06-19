@@ -152,8 +152,10 @@
         </div>
         
         <div id="error" class="error-message">Invalid username or password.</div>
+        <div id="success" style="color: var(--success); font-size: 14px; margin-bottom: 16px; text-align: center; display: none;">Password changed successfully. Please log in with your new password.</div>
         
         <form action="/admin/login" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" placeholder="Enter admin username" required>
@@ -169,10 +171,17 @@
     </div>
 
     <script>
-        // Display error if URL has error query param
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('error')) {
+        const err = urlParams.get('error');
+        if (err === '1') {
+            document.getElementById('error').textContent = 'Invalid username or password.';
             document.getElementById('error').style.display = 'block';
+        } else if (err === 'lockout') {
+            document.getElementById('error').textContent = 'Too many failed login attempts. Account locked for 15 minutes.';
+            document.getElementById('error').style.display = 'block';
+        }
+        if (urlParams.get('changed') === '1') {
+            document.getElementById('success').style.display = 'block';
         }
     </script>
 </body>

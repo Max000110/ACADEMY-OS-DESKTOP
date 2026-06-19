@@ -52,9 +52,9 @@ def run_offline_ocr(image_path: str) -> str:
             common_paths = []
             if os.path.exists(portable_path):
                 common_paths.append(portable_path)
-                # Configure tessdata prefix if using portable bundler
+                # Configure tessdata prefix if using portable bundler (must point to parent of 'tessdata' folder)
                 if os.path.exists(portable_tessdata):
-                    os.environ["TESSDATA_PREFIX"] = portable_tessdata
+                    os.environ["TESSDATA_PREFIX"] = os.path.join(app_dir, "tesseract")
             
             common_paths.extend([
                 r"C:\Program Files\Tesseract-OCR\tesseract.exe",
