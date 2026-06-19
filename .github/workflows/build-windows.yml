@@ -51,16 +51,30 @@ jobs:
           Write-Host "Starting dry run of AcademyOS.exe to verify successful startup..."
           $proc = Start-Process -FilePath "dist\AcademyOS.exe" -NoNewWindow -RedirectStandardError "err.txt" -RedirectStandardOutput "out.txt" -PassThru
           Start-Sleep -Seconds 8
+          $proc.Refresh()
+          
+          Write-Host "=== Process State After Sleep ==="
+          Write-Host "HasExited: $($proc.HasExited)"
           if ($proc.HasExited) {
-              Write-Error "AcademyOS.exe crashed on startup with exit code: $($proc.ExitCode)"
-              if (Test-Path "err.txt") {
-                  Write-Host "=== Standard Error Output ==="
-                  Get-Content "err.txt"
-              }
-              if (Test-Path "out.txt") {
-                  Write-Host "=== Standard Output ==="
-                  Get-Content "out.txt"
-              }
+              Write-Host "ExitCode: $($proc.ExitCode)"
+          }
+          
+          if (Test-Path "err.txt") {
+              Write-Host "=== Standard Error Output ==="
+              Get-Content "err.txt"
+          } else {
+              Write-Host "err.txt not found"
+          }
+          
+          if (Test-Path "out.txt") {
+              Write-Host "=== Standard Output ==="
+              Get-Content "out.txt"
+          } else {
+              Write-Host "out.txt not found"
+          }
+          
+          if ($proc.HasExited) {
+              Write-Error "AcademyOS.exe crashed on startup."
               exit 1
           } else {
               Write-Host "AcademyOS.exe launched successfully and is running."
