@@ -74,6 +74,10 @@ class SettingsTab(QWidget):
         self.btn_activate.clicked.connect(self.activate_license)
         license_layout.addRow(self.btn_activate)
         
+        self.btn_refresh = QPushButton("Refresh Online License")
+        self.btn_refresh.clicked.connect(self.refresh_online_license)
+        license_layout.addRow(self.btn_refresh)
+        
         layout.addWidget(license_group)
         
         # --- SYSTEM USER MANUAL HELP PANEL ---
@@ -138,6 +142,62 @@ class SettingsTab(QWidget):
         if dlg.exec() == QDialog.Accepted:
             self.refresh_health_status()
             self.window().refresh_all_tabs()
+            
+    def refresh_online_license(self):
+        import os
+        import json
+        import urllib.request
+        import urllib.error
+        from src.engines.license import get_device_fingerprint, activate_license
+        
+        settings = load_settings()
+        lic_key = settings.get("license_key")
+        if not lic_key:
+            QMessageBox.warning(self, "No Online Key", "This application was not activated online. Please activate using your Customer License Key first.")
+            return
+            
+        fingerprint = get_device_fingerprint()
+        server_url = os.environ.get("AOS_LICENSING_SERVER_URL", "http://127.0.0.1:8000")
+        url = f"{server_url}/api/activate"
+        
+        payload = {
+            "license_key": lic_key,
+            "device_fingerprint": fingerprint
+        }
+        
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode('utf-8'),
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+        )
+        
+        try:
+            with urllib.request.urlopen(req, timeout=10) as response:
+                res_data = json.loads(response.read().decode('utf-8'))
+                
+            activation_key = res_data.get("activation_key")
+            if not activation_key:
+                QMessageBox.critical(self, "Error", "Invalid response from licensing server.")
+                return
+                
+            if activate_license(activation_key):
+                QMessageBox.information(self, "Success", "License synchronized and refreshed successfully!")
+                self.refresh_health_status()
+                self.window().refresh_all_tabs()
+            else:
+                QMessageBox.critical(self, "Failed", "Failed to refresh local activation key.")
+        except urllib.error.HTTPError as e:
+            try:
+                err_data = json.loads(e.read().decode('utf-8'))
+                detail = err_data.get("detail", str(e))
+            except Exception:
+                detail = str(e)
+            QMessageBox.critical(self, "Validation Failed", f"Licensing server reports: {detail}")
+        except urllib.error.URLError as e:
+            QMessageBox.critical(self, "Connection Error", f"Cannot connect to licensing server: {e.reason}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An unexpected error occurred: {e}")
             
     def refresh_health_status(self):
         # 1. Check Licensing
